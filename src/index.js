@@ -1,26 +1,18 @@
+/* Finished tutorial -> TO DO 
+ * If you have extra time or want to practice your new React skills, here are some ideas for improvements 
+ * that you could make to the tic-tac-toe game which are listed in order of increasing difficulty:
+    1) Display the location for each move in the format (col, row) in the move history list.
+    2) Bold the currently selected item in the move list.
+    3) Rewrite Board to use two loops to make the squares instead of hardcoding them.
+    4) Add a toggle button that lets you sort the moves in either ascending or descending order.
+    5) When someone wins, highlight the three squares that caused the win.
+    6) When no one wins, display a message about the result being a draw.
+
+*/
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-
-
-/* changing Square class to function
-class Square extends React.Component {
-     // in tutorial: "Delete the constructor from Square because Square no longer keeps track of the game’s state"
-     constructor(props) {
-        super(props);
-        this.state = {
-            value: null,
-        };
-    }
-
-    render() {
-        return (
-            <button className="square" onClick={props.onClick()}>
-                {props.value}
-            </button>
-        );
-    }
-}*/
 
 // Square function that takes props as an input and returns the render valuye
 function Square(props) {
@@ -39,7 +31,7 @@ function calculateWinner(squares) {
         [0, 4, 8], [2, 4, 6], // diagonal or if +4 incremental starting 0 or if +2 incremental starting 2
     ]
 
-
+    // from the tutorial
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
@@ -89,6 +81,7 @@ class Game extends React.Component {
             history: [{
                 squares: Array(9).fill(null)
             }], // creates empty array from 0 to 9
+            stepNumber: 0,
             xIsNext: true,
         };
     }
@@ -98,7 +91,7 @@ class Game extends React.Component {
     }
 
     handleClick(i) { // method when square is clicked change state of the board
-        const history = this.state.history;
+        const history = this.state.history.slice(0,this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice(); // copies array of squares when clicked.
         if (calculateWinner(squares) || squares[i]) {
@@ -109,14 +102,34 @@ class Game extends React.Component {
             history: history.concat([{
                 squares: squares, // example: [null, null, null] becomes ['X',null,null] on click
             }]),
+            stepNumber: history.length,
             xIsNext: !this.state.xIsNext, // reverses value
+        });
+    }
+
+    jumpTo(step) {
+        this.setState({
+            stepNumber: step,
+            xIsNext: (step % 2) === 0,
         });
     }
 
     render() {
         const history = this.state.history;
-        const current = history[history.length - 1];
+        const current = history[this.state.stepNumber];
         const winner = calculateWinner(current.squares);
+
+        const moves = history.map((step, move) => {
+            const desc = move ?
+                'Go to move #' + move :
+                'Go to game start';
+            return (
+                <li key={move}>
+                    <button onClick={() => this.jumpTo(move)}>{desc}</button>
+                </li>
+            );
+        });
+
         let status;
         if (winner) {
             status = "Winner: " + winner;
@@ -134,7 +147,7 @@ class Game extends React.Component {
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
-                    <ol>{/*set how many turns*/}</ol>
+                    <ol>{moves}</ol>
                 </div>
             </div>
         );
